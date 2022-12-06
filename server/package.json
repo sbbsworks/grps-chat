@@ -1,0 +1,12 @@
+{
+  "name": "react-grpc-chat-server",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@grpc/grpc-js": "*",
+    "@grpc/proto-loader": "*",
+    "express": "^4.18.2",
+    "grpc-web": "*",
+    "protobufjs": "^6.10.1"
+  }
+}

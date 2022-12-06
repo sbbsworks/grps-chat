@@ -1,0 +1,70 @@
+version: '3.9'
+
+services:
+
+  envoy:
+    container_name: envoy
+    image: envoyproxy/envoy:v1.12.2
+    volumes:
+      - ./envoy:/etc/envoy/
+    command: /usr/local/bin/envoy -c /etc/envoy/envoy.yaml -l trace --log-path /tmp/envoy_info.log
+    ports:
+      - "9090:9090"
+    networks:
+      - grpc_network
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 1s
+        max_attempts: 20
+        window: 120s
+
+  nginx-grpc:
+    depends_on:
+      - node-grpc
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    image: nginx-grpc
+    container_name: nginx-grpc
+    volumes:
+      - ./build:/chat
+    working_dir: /chat
+    ports:
+      - "5050:5050"
+    networks:
+      - grpc_network
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 1s
+        max_attempts: 20
+        window: 120s
+
+  node-grpc:
+    container_name: node_grpc
+    image: node:latest
+    volumes:
+      - ./server:/server
+    working_dir: /server
+    command: >
+      bash -c "npm install && node server.js"
+    networks:
+      - grpc_network
+    ports:
+      - "8080:8080"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 1s
+        max_attempts: 20
+        window: 120s
+
+networks:
+  grpc_network:
+    driver: bridge
+    name: grpc_network
+
+volumes:
+  cache:
+    driver: local
